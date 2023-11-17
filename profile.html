@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Seat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    body {
+      background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(75, 14, 154, 1) 35%, rgba(0, 212, 255, 1) 100%);
+    }
+
+    .student,
+    .teacher {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <script>
+    setInterval(function () {
+      var date = new Date();
+      if (date.getMinutes() === 0 && date.getSeconds() === 0) {
+        location.reload();
+      }
+    }, 1000);
+  </script>
+
+  <script>
+    var data = JSON.parse(localStorage.getItem("data"));
+    if (data["current_login"]["uid"] == "") {
+      $.getScript("navbar1.js");
+    }
+    else {
+      $.getScript("navbar2.js");
+    }
+  </script>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-light" id="navbar"></nav>
+
+  <script>
+    $(document).ready(function () {
+      var data = JSON.parse(localStorage.getItem("data"));
+      var bookedRooms = data["booked_rooms"];
+      var currentDate = new Date();
+      for (var i = 0; i < bookedRooms.length; i++) {
+        var bookedRoomDate = new Date(bookedRooms[i]["date"]);
+        var bookedRoomTime = bookedRooms[i]["time"].split(':').map(Number);
+        var bookedRoomDateTime = new Date(bookedRoomDate.getFullYear(), bookedRoomDate.getMonth(), bookedRoomDate.getDate(), bookedRoomTime[0] + 1, bookedRoomTime[1]);
+        if (bookedRoomDateTime < currentDate) {
+          bookedRooms.splice(i, 1);
+          i--;
+        }
+      }
+      data["booked_rooms"] = bookedRooms;
+      localStorage.setItem("data", JSON.stringify(data));
+    })
+  </script>
+
+  <!-- Main Page -->
+
+
+  <!-- student page -->
+  <div>
+    <div class="student">
+      <div class="d-flex justify-content-evenly" id="std-form-div">
+        <div class="d-flex justify-content-evenly" style="flex-direction: column; width: fit-content;">
+          <div class="container d-flex justify-content-center text-light my-5"
+            style="width: fit-content; flex-direction: column;" id="desc"></div>
+          <div class="container d-flex justify-content-center text-light my-5"
+            style="width: fit-content; flex-direction: column;" id="seltchr">
+            <h1>List of teachers: </h1>
+          </div>
+        </div>
+        <div id="std-form">
+          <div class="d-flex justify-content-center align-items-center" style="flex-direction: column;">
+            <style>
+              .student .d-flex #std-form .d-flex form {
+                width: 25%;
+              }
+
+              .student .d-flex div .d-flex .form-control {
+                color: rgba(0, 0, 0, .87);
+                border-bottom-color: rgba(0, 0, 0, .42);
+                border: none;
+                border-bottom: 1px solid;
+              }
+
+              .student .d-flex div .d-flex h4 {
+                font-size: 2rem !important;
+                font-weight: 500;
+              }
+
+              .student .d-flex div .d-flex .form-label {
+                font-weight: 500 !important;
+              }
+
+              @media only screen and (max-width: 2000px) {
+                .student .d-flex div .d-flex form {
+                  width: 100% !important;
+                }
+              }
+
+              @media only screen and (max-width: 700px) {
+                .student .d-flex div .d-flex form {
+                  width: 100% !important;
+                }
+
+                #std-form-div {
+                  flex-direction: column;
+                }
+              }
+            </style>
+            <form class="rounded-4 mt-5 bg-white p-4">
+              <div class="container-fluid">
+                <form class="mx-auto rounded-4 mt-5 bg-white p-5">
+                  <h1>Select Room</h1>
+                  <label for="std-tchr-uid" class="form-label">Teacher UID</label>
+                  <select class="form-control" style="border: 1px solid black;" id="std-tchr-uid">
+                    <option value="select">Select</option>
+                  </select>
+                  <script>
+                    var data = JSON.parse(localStorage.getItem("data"));
+                    var currentUid = data["current_login"]["uid"];
+                    var teachers = data["teacher_student"];
+                    var bookedRooms = data["booked_rooms"];
+
+                    var teacherUids = [];
+
+                    for (var i = 0; i < bookedRooms.length; i++) {
+                      var bookedRoomUid = bookedRooms[i]["booked_by"];
+                      for (var teacherUid in teachers) {
+                        if (teachers[teacherUid].includes(currentUid) && teacherUid == bookedRoomUid) {
+                          teacherUids.push(teacherUid);
+                        }
+                      }
+                    }
+
+                    teacherUids = new Set(teacherUids);
+                    teacherUids = Array.from(teacherUids);
+
+                    for (var i = 0; i < teacherUids.length; i++) {
+                      $("#std-tchr-uid").append(new Option(teacherUids[i], teacherUids[i]));
+                    }
+                  </script>
+                  <label for="std-date" class="form-label">Date</label>
+                  <select class="form-control" style="border: 1px solid black;" id="std-date">
+                    <option value="select">Select</option>
+                  </select>
+                  <script>
+                    $("#std-tchr-uid").change(function () {
+                      var data = JSON.parse(localStorage.getItem("data"));
+                      var bookedRooms = data["booked_rooms"];
+                      var dates = [];
+                      for (var i = 0; i < bookedRooms.length; i++) {
+                        var bookedRoomUid = bookedRooms[i]["booked_by"];
+                        var bookedRoomDate = bookedRooms[i]["date"];
+                        if (bookedRoomUid == $("#std-tchr-uid").val()) {
+                          dates.push(bookedRoomDate)
+                        }
+                      }
+                      dates = new Set(dates);
+                      dates = Array.from(dates);
+                      for (var i = 0; i < dates.length; i++) {
+                        $("#std-date").append(new Option(dates[i], dates[i]));
+                      }
+                    });
+                  </script>
+                  <label for="std-time" class="form-label">Time</label>
+                  <select class="form-control" style="border: 1px solid black;" id="std-time">
+                    <option value="select">Select</option>
+                  </select>
+                  <script>
+                    $("#std-date").change(function () {
+                      var data = JSON.parse(localStorage.getItem("data"));
+                      var bookedRooms = data["booked_rooms"];
+                      var times = [];
+                      for (var i = 0; i < bookedRooms.length; i++) {
+                        var bookedRoomUid = bookedRooms[i]["booked_by"];
+                        var bookedRoomDate = bookedRooms[i]["date"];
+                        var bookedRoomTime = bookedRooms[i]["time"];
+                        if (bookedRoomUid == $("#std-tchr-uid").val() && bookedRoomDate == $("#std-date").val()) {
+                          times.push(bookedRoomTime);
+                        }
+                      }
+                      for (var i = 0; i < times.length; i++) {
+                        $("#std-time").append(new Option(times[i], times[i]));
+                      }
+                    });
+                  </script>
+                  <label for="std-block" class="form-label">Block</label>
+                  <select class="form-control" style="border: 1px solid black;" id="std-block">
+                    <option value="select">Select</option>
+                  </select>
+                  <script>
+                    $("#std-time").change(function () {
+                      var data = JSON.parse(localStorage.getItem("data"));
+                      var bookedRooms = data["booked_rooms"];
+                      for (var i = 0; i < bookedRooms.length; i++) {
+                        var bookedRoomUid = bookedRooms[i]["booked_by"];
+                        var bookedRoomDate = bookedRooms[i]["date"];
+                        var bookedRoomTime = bookedRooms[i]["time"];
+                        var block = bookedRooms[i]["blockno"];
+                        if (bookedRoomUid == $("#std-tchr-uid").val() && bookedRoomDate == $("#std-date").val() && bookedRoomTime == $("#std-time").val()) {
+                          $("#std-block").append(new Option(block, block));
+                        }
+                      }
+                    });
+                  </script>
+                  <label for="std-room" class="form-label">Room</label>
+                  <select class="form-control" style="border: 1px solid black;" id="std-room">
+                    <option value="select">Select</option>
+                  </select>
+                  <script>
+                    $("#std-block").change(function () {
+                      var data = JSON.parse(localStorage.getItem("data"));
+                      var bookedRooms = data["booked_rooms"];
+                      for (var i = 0; i < bookedRooms.length; i++) {
+                        var bookedRoomUid = bookedRooms[i]["booked_by"];
+                        var bookedRoomDate = bookedRooms[i]["date"];
+                        var bookedRoomTime = bookedRooms[i]["time"];
+                        var block = bookedRooms[i]["blockno"];
+                        var room = bookedRooms[i]["roomno"];
+                        if (bookedRoomUid == $("#std-tchr-uid").val() && bookedRoomDate == $("#std-date").val() && bookedRoomTime == $("#std-time").val() && block == $("#std-block").val()) {
+                          $("#std-room").append(new Option(room, room));
+                        }
+                      }
+                    });
+                  </script>
+                  <label for="std-seat" class="form-label">Seat</label>
+                  <select class="form-control" style="border: 1px solid black;" id="std-seat">
+                    <option value="select">Select</option>
+                  </select>
+                  <script>
+                    $("#std-room").change(function () {
+                      var data = JSON.parse(localStorage.getItem("data"));
+                      var bookedRooms = data["booked_rooms"];
+                      var seats = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11', 'B12', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9', 'E10', 'E11', 'E12', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
+                      for (var i = 0; i < bookedRooms.length; i++) {
+                        var bookedRoomUid = bookedRooms[i]["booked_by"];
+                        var bookedRoomDate = bookedRooms[i]["date"];
+                        var bookedRoomTime = bookedRooms[i]["time"];
+                        var block = bookedRooms[i]["blockno"];
+                        var room = bookedRooms[i]["roomno"];
+                        if (bookedRoomUid == $("#std-tchr-uid").val() && bookedRoomDate == $("#std-date").val() && bookedRoomTime == $("#std-time").val() && block == $("#std-block").val() && room == $("#std-room").val() && bookedRooms[i]["seatingorder"] == "Default") {
+                          $("#std-seat").prop("disabled", true);
+                        }
+                        else if (bookedRoomUid == $("#std-tchr-uid").val() && bookedRoomDate == $("#std-date").val() && bookedRoomTime == $("#std-time").val() && block == $("#std-block").val() && room == $("#std-room").val()) {
+                          var data_row = bookedRooms[i]["booked_seats"];
+                          for (var key in data_row) {
+                            if (seats.includes(data_row[key])) {
+                              var index = seats.indexOf(data_row[key]);
+                              seats.splice(index, 1);
+                            }
+                          }
+                          break;
+                        }
+                      }
+                      for (var i = 0; i < seats.length; i++) {
+                        $("#std-seat").append(new Option(seats[i], seats[i]));
+                      }
+                    });
+
+                  </script>
+                  <button type="submit" class="btn btn-primary mt-4 w-100 border-0 rounded-5" id="seatbook">Add</button>
+                  <script>
+                    $("#seatbook").click(function () {
+                      var tchr_uid = $("#std-tchr-uid").val();
+                      var std_date = $("#std-date").val();
+                      var std_time = $("#std-time").val();
+                      var std_block = $("#std-block").val();
+                      var std_room = $("#std-room").val();
+                      var std_seat = $("#std-seat").val();
+                      var data = JSON.parse(localStorage.getItem("data"));
+                      for (var i = 0; i < data["booked_rooms"].length; i++) {
+                        if ((data["booked_rooms"][i]["booked_by"]) == tchr_uid && data["booked_rooms"][i]["date"] == std_date && data["booked_rooms"][i]["time"] == std_time && data["booked_rooms"][i]["blockno"] == std_block && data["booked_rooms"][i]["roomno"] == std_room) {
+                          data["booked_rooms"][i]["booked_seats"][data["current_login"]["uid"]] =data["booked_rooms"][i]["seatingorder"]=="Default"?[]: std_seat;
+                          localStorage.setItem("data", JSON.stringify(data));
+                          alert("Booking Successful!");
+                          break;
+                        }
+                      }
+                    });
+                  </script>
+                </form>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <script>
+        $(document).ready(function () {
+          $("#desc").html(`<h1>Profile Details</h1><p><br>ID: ${JSON.parse(localStorage.getItem("data"))["current_login"]["uid"]}<br>Password: *********** <button class="btn btn-primary h-50 w-50" onclick=pass()>Edit Password</button></p>`)
+        });
+        function pass() {
+          var a = prompt("Enter old Password");
+          if (a == JSON.parse(localStorage.getItem("data"))["login"]["student"][JSON.parse(localStorage.getItem("data"))["current_login"]["uid"]]) {
+            var b = prompt("Enter new password");
+            if (b == JSON.parse(localStorage.getItem("data"))["login"]["student"][JSON.parse(localStorage.getItem("data"))["current_login"]["uid"]]) {
+              alert("same password");
+            }
+            else {
+              JSON.parse(localStorage.getItem("data"))["login"]["student"][JSON.parse(localStorage.getItem("data"))["current_login"]["uid"]] = b;
+            }
+          }
+          else {
+            alert("Wrong Password");
+          }
+        }  
+      </script>
+      <script>
+        $(document).ready(function () {
+          var data = JSON.parse(localStorage.getItem("data"));
+          var teachers = Object.keys(data["teacher_student"]);
+
+          var table = $('<table></table>');
+          var thead = $('<thead></thead>');
+          var tbody = $('<tbody></tbody>');
+          var headerRow = $('<tr></tr>');
+          headerRow.append('<th>List of Teachers</th>').append('<th></th>');
+          thead.append(headerRow);
+          thead.addClass("d-flex");
+          thead.addClass("justify-content-center");
+          table.append(thead);
+
+          for (var i = 0; i < teachers.length; i++) {
+            var row = $('<tr></tr>');
+            var checkbox = $('<input class="tchr_selection" type="checkbox" value="' + teachers[i] + '">');
+            checkbox.addClass("form-check-input");
+            row.append('<td>' + teachers[i] + '</td>').append($('<td></td>').append(checkbox));
+            tbody.append(row);
+          }
+
+          table.append(tbody);
+          $('#seltchr').append(table);
+
+          var button = $('<button>Submit</button>');
+          button.addClass("btn");
+          button.addClass("btn-primary");
+          $('#seltchr').append(button);
+
+          button.click(function () {
+            $('.tchr_selection:checked').each(function () {
+              var teacherUid = $(this).val();
+              if (!data["teacher_student"][teacherUid]) {
+                data["teacher_student"][teacherUid] = [];
+              }
+              if (!data["teacher_student"][teacherUid].includes(data["current_login"]["uid"])) {
+                data["teacher_student"][teacherUid].push(data["current_login"]["uid"]);
+              }
+              alert("done");
+            });
+            localStorage.setItem("data", JSON.stringify(data));
+          });
+        });
+      </script>
+    </div>
+
+
+
+    <!-- Teacher page -->
+    <div class="teacher">
+      <style>
+        #teacher_row {
+          flex-direction: row;
+        }
+      </style>
+      <div class="d-flex justify-content-around" id="teacher_row">
+        <div class="d-flex justify-content-center text-white" style="flex-direction: column; max-width: min-content;"
+          id="tchr-std-div">
+        </div>
+        <script>
+          $(document).ready(function () {
+            var data = JSON.parse(localStorage.getItem("data"));
+            var teacherStudent = data["teacher_student"];
+            var currentUid = data["current_login"]["uid"];
+            var table = $('<table></table>');
+            var headerRow = $('<tr></tr>');
+            headerRow.append('<th>Student</th>');
+            headerRow.append('<th>Delete</th=>');
+            table.append(headerRow);
+            var students = teacherStudent[currentUid];
+            if (students) {
+            for (var i = 0; i < students.length; i++) {
+              var row = $('<tr></tr>');
+              row.append('<td>' + students[i] + '</td>');
+              row.append('<td><button class="delete-btn btn btn-danger">Delete</button></td>');
+              table.append(row);
+            }
+            $('#tchr-std-div').append(table);
+            $('.delete-btn').click(function () {
+                var row = $(this).closest('tr');
+                var student = row.find('td:first').text();
+                var index = teacherStudent[currentUid].indexOf(student);
+                if (index > -1) {
+                  teacherStudent[currentUid].splice(index, 1);
+                }
+                var bookedRooms = data["booked_rooms"];
+                if(bookedRooms){
+                  for (var i = 0; i < bookedRooms.length; i++) {
+                    if (bookedRooms[i]["booked_by"] == currentUid && bookedRooms[i]["booked_seats"][student]) {
+                      delete bookedRooms[i]["booked_seats"][student];
+                    }
+                  }
+                  data["teacher_student"] = teacherStudent;
+                  localStorage.setItem("data", JSON.stringify(data));
+                  row.remove();
+                }
+              });}
+          });
+        </script>
+        
+        <div class="d-flex justify-content-center align-items-center" style="flex-direction: column;">
+          <style>
+            .teacher .d-flex .form-control {
+              color: rgba(0, 0, 0, .87);
+              border-bottom-color: rgba(0, 0, 0, .42);
+              border: none;
+              border-bottom: 1px solid;
+            }
+
+            .teacher .d-flex h4 {
+              font-size: 2rem !important;
+              font-weight: 500;
+            }
+
+            .teacher .d-flex .form-label {
+              font-weight: 500 !important;
+            }
+
+            @media only screen and (max-width: 600px) {
+              #teacher_row {
+                flex-direction: column;
+              }
+            }
+          </style>
+          <form class="rounded-4 mt-5 bg-white p-4">
+            <div class="container-fluid">
+              <form class="mx-auto rounded-4 mt-5 bg-white p-5">
+                <h4 class="text-center">Select Room</h4>
+                <div class="my-3">
+                  <label for="roomno" class="form-label">Room Number</label>
+                  <input type="text" class="form-control shadow-none" id="roomno">
+                </div>
+                <div class="my-3">
+                  <label for="blockno" class="form-label">Block Number</label>
+                  <input type="number" class="form-control shadow-none" id="blockno">
+                </div>
+                <div class="my-3">
+                  <label for="time" class="form-label">Time</label>
+                  <input type="time" class="form-control shadow-none" id="time">
+                </div>
+                <label for="seatingorder" class="form-label">Seating Order</label>
+                <select class="form-control" style="border: 1px solid black;" id="seatingorder">
+                  <option value="select">Select</option>
+                  <option value="Default">Default</option>
+                  <option value="Choice">Choice</option>
+                </select>
+                <div class="my-3">
+                  <label for="date" class="form-label">Date</label>
+                  <input type="date" class="form-control shadow-none" id="date">
+                </div>
+                <button type="submit" class="btn btn-primary mt-4 w-100 border-0 rounded-5" id="book">Add</button>
+              </form>
+            </div>
+          </form>
+        </div>
+        <script>
+          $("#book").click(function (event) {
+            var room = $('#roomno').val();
+            var block = $('#blockno').val();
+            var time = $('#time').val();
+            var seatingorder = $('#seatingorder').val();
+            var date = $('#date').val();
+            if (!room || !block || !time || seatingorder == "select" || !date) {
+              alert('Please fill all fields');
+              return false;
+            }
+            var data = JSON.parse(localStorage.getItem("data"));
+            for (var i = 0; i < data["booked_rooms"].length; i++) {
+              var oldtime = data["booked_rooms"][i]["time"];
+              if (data["booked_rooms"][i]["date"] == date && parseInt(oldtime.substring(0, 2)) == parseInt(time.substring(0, 2)) && data["booked_rooms"][i]["blockno"]==block) {
+                alert("Time Slot already booked, select another");
+                return;
+              }
+            }
+            var uid = data["current_login"]["uid"];
+            var booked_seats = $("#seatingorder").val() == "Default" ? null : [];
+            var json = {
+              "roomno": room,
+              "blockno": block,
+              "time": time.substring(0, 2) + ":00",
+              "seatingorder": seatingorder,
+              "booked_by": uid,
+              "date": date,
+              "booked_seats": booked_seats
+            };
+            data["booked_rooms"].push(json);
+            localStorage.setItem("data", JSON.stringify(data));
+
+            alert("Added successfully");
+          });
+
+        </script>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      if (JSON.parse(localStorage.getItem("data"))["current_login"]["role"] == "teacher") {
+        $(".teacher").css("display", "block");
+        $(".student").css("display", "none");
+      }
+      else if (JSON.parse(localStorage.getItem("data"))["current_login"]["role"] == "student") {
+        $(".student").css("display", "block");
+        $(".teacher").css("display", "none");
+      }
+      else {
+        window.location.href = "./login.html"
+      }
+    })
+  </script>
+</body>
+
+</html>
